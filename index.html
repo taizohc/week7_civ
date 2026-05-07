@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cybersyn — Sala de Operaciones, Santiago 1972</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{
+  background:#050402;
+  font-family:'Share Tech Mono','Courier New',monospace;
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+#app{ width:min(1100px,100vw); position:relative; }
+
+/* INTRO */
+#intro{
+  position:absolute;inset:0;background:#030502;z-index:50;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px;animation:fadeIn 1.2s ease forwards;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0;pointer-events:none}}
+#intro.hiding{animation:fadeOut 0.8s ease forwards;}
+.iy{font-family:'Bebas Neue',sans-serif;font-size:clamp(60px,10vw,110px);color:#0a1a0a;letter-spacing:12px;line-height:1;}
+.it{font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,5vw,52px);color:#00cc30;letter-spacing:8px;line-height:1;margin-bottom:6px;}
+.is{font-size:clamp(9px,1.2vw,11px);color:#1a4a1a;letter-spacing:4px;margin-bottom:36px;}
+@keyframes su{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.iy{animation:su 1s 0.3s ease both;}.it{animation:su 1s 0.5s ease both;}.is{animation:su 1s 0.7s ease both;}
+.idiv{width:180px;height:1px;background:#0a280a;margin:0 auto 32px;animation:su 1s 0.9s ease both;}
+.ibody{max-width:560px;text-align:center;animation:su 1s 1s ease both;margin-bottom:40px;}
+.ibody p{font-size:clamp(10px,1.3vw,12px);color:#2a5a2a;letter-spacing:1px;line-height:2;margin-bottom:12px;}
+.ibody .hl{color:#00aa28;}
+.ifacts{display:flex;gap:24px;justify-content:center;animation:su 1s 1.1s ease both;margin-bottom:48px;flex-wrap:wrap;}
+.fact{text-align:center;border:1px solid #0a200a;padding:12px 18px;}
+.fn{font-family:'Bebas Neue',sans-serif;font-size:28px;color:#00aa28;letter-spacing:3px;display:block;}
+.fl{font-size:8px;color:#1a3a1a;letter-spacing:2px;display:block;margin-top:2px;}
+#enterbtn{
+  animation:su 1s 1.3s ease both;background:transparent;border:1px solid #1a4a1a;
+  color:#00cc30;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:4px;
+  padding:14px 40px;cursor:pointer;transition:all 0.3s;
+}
+#enterbtn:hover{background:rgba(0,200,48,0.06);border-color:#00cc30;box-shadow:0 0 24px rgba(0,200,48,0.08);}
+.ic{position:absolute;font-size:8px;color:#0a200a;letter-spacing:2px;}
+.ic.tl{top:18px;left:22px;}.ic.tr{top:18px;right:22px;}
+.ic.bl{bottom:18px;left:22px;}.ic.br{bottom:18px;right:22px;}
+.cur{animation:blink 1s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#intro::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);pointer-events:none;}
+
+/* ROOM */
+#roomwrap{position:relative;width:100%;line-height:0;}
+canvas#room{width:100%;display:block;cursor:default;}
+#szone{position:absolute;cursor:pointer;background:transparent;border:none;}
+#szone:hover .szr{opacity:1;}
+.szr{position:absolute;inset:-4px;border:2px solid rgba(0,230,60,0.5);border-radius:4px;opacity:0;transition:opacity 0.2s;pointer-events:none;box-shadow:0 0 16px rgba(0,230,60,0.15);}
+.szt{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.9);border:1px solid rgba(0,200,50,0.3);color:rgba(0,200,50,0.7);font-size:10px;letter-spacing:2px;padding:3px 12px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.2s;}
+#szone:hover .szt{opacity:1;}
+
+#rcaption{background:#050402;border-top:1px solid #120f06;padding:8px 20px;display:flex;justify-content:space-between;}
+#rcaption span{font-size:9px;letter-spacing:2px;color:#2a2010;}
+.live{display:inline-block;width:5px;height:5px;border-radius:50%;background:#1a4a10;margin-right:6px;animation:pulse 2s infinite;vertical-align:middle;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* DASHBOARD */
+#dashboard{display:none;position:absolute;inset:0;background:#040804;flex-direction:column;z-index:20;}
+#dashboard.open{display:flex;animation:dashIn 0.35s ease;}
+@keyframes dashIn{from{opacity:0;transform:scale(0.98)}to{opacity:1;transform:scale(1)}}
+
+/* header */
+#dh{background:#050905;border-bottom:1px solid #0c1e0c;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.dhl h1{font-family:'Bebas Neue',sans-serif;font-size:28px;color:#00cc30;letter-spacing:5px;font-weight:normal;}
+.dhl p{font-size:13px;color:#2a5a2a;letter-spacing:2px;margin-top:3px;}
+.dhr{display:flex;align-items:center;gap:22px;}
+.pill{display:flex;align-items:center;gap:6px;font-size:13px;color:#2a5a2a;letter-spacing:1.5px;}
+.pd{width:7px;height:7px;border-radius:50%;background:#00cc30;animation:pulse 2s infinite;}
+.pd.w{background:#cc8800;}.pd.c{background:#cc1010;animation:pulse 0.4s infinite;}
+#backbtn{background:transparent;border:1px solid #1a3a1a;color:#3a7a3a;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:2px;padding:8px 18px;cursor:pointer;transition:all 0.2s;}
+#backbtn:hover{border-color:#00cc30;color:#00cc30;}
+
+/* crisis strip */
+#cstrip{display:none;background:#180303;border-bottom:1px solid #3a0808;padding:10px;text-align:center;font-size:14px;color:#cc1010;letter-spacing:4px;animation:pulse 0.7s infinite;flex-shrink:0;}
+
+/* grid */
+#db{flex:1;display:grid;grid-template-columns:1.1fr 1fr 1fr 0.9fr;gap:1px;background:#0a140a;overflow:hidden;}
+.panel{background:#050a05;padding:18px 20px;overflow:hidden;}
+
+/* panel title */
+.pt{font-size:11px;letter-spacing:3px;color:#2a5a2a;text-transform:uppercase;border-bottom:1px solid #0e220e;padding-bottom:9px;margin-bottom:16px;}
+
+/* sectors */
+.sec{margin-bottom:14px;}
+.srow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.sn{font-size:14px;color:#4a8a4a;letter-spacing:0.5px;}
+.sv{font-size:16px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;}
+.bar{height:5px;background:#0a160a;border-radius:3px;}
+.bf{height:100%;border-radius:3px;transition:width 1s ease,background 0.4s;}
+.ok{color:#00cc30;}.wn{color:#cc8800;}.cr{color:#cc1010;}
+.bok{background:#00cc30;}.bwn{background:#cc8800;}.bcr{background:#cc1010;}
+
+/* controls */
+.ctrl{margin-bottom:18px;}
+.cl{font-size:12px;color:#2a5a2a;letter-spacing:1.5px;margin-bottom:5px;text-transform:uppercase;}
+.cv{font-family:'Bebas Neue',sans-serif;font-size:32px;color:#00cc30;letter-spacing:2px;line-height:1;margin-bottom:7px;}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:#0a160a;outline:none;border:none;border-radius:2px;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#00cc30;cursor:pointer;}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#00cc30;cursor:pointer;border:none;}
+
+/* variety */
+.vsect{margin-top:20px;padding-top:16px;border-top:1px solid #0e220e;}
+.vrow{display:flex;justify-content:space-between;margin-bottom:6px;}
+.vl{font-size:12px;color:#2a5a2a;letter-spacing:1px;}
+.vv{font-size:14px;color:#00cc30;letter-spacing:1px;font-family:'Bebas Neue',sans-serif;}
+.vbar{height:6px;background:#0a160a;border-radius:3px;margin-bottom:10px;}
+.vf{height:100%;border-radius:3px;background:#00cc30;transition:width 0.8s ease,background 0.4s;}
+.vnote{font-size:11px;color:#224a22;letter-spacing:0.3px;line-height:1.9;}
+
+/* telex */
+.tl{font-size:12px;color:#1e4a1e;line-height:2.2;}
+.tl.fresh{color:#00aa30;animation:tf 0.5s ease;}
+@keyframes tf{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+/* action buttons */
+.abtn{display:block;width:100%;background:transparent;border:1px solid #142814;color:#3a6a3a;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:1.5px;padding:12px 14px;margin-bottom:10px;cursor:pointer;text-align:left;transition:all 0.2s;line-height:1.3;}
+.abtn:hover{border-color:#00cc30;color:#00cc30;background:rgba(0,204,48,0.04);}
+.abtn.danger{border-color:#2a0808;color:#7a3030;}
+.abtn.danger:hover{border-color:#cc1010;color:#cc1010;}
+
+/* footer */
+#df{background:#030603;border-top:1px solid #0a140a;padding:9px 24px;display:flex;justify-content:space-between;font-size:11px;color:#1a3a1a;letter-spacing:2px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="ic tl">PROYECTO SYNCO</div>
+  <div class="ic tr">CHILE — 1971–73</div>
+  <div class="ic bl">STAFFORD BEER — VIABLE SYSTEM MODEL</div>
+  <div class="ic br">CYBERNET — 503 NODES<span class="cur">_</span></div>
+  <div class="iy">1972</div>
+  <div class="it">Project Cybersyn</div>
+  <div class="is">Sala de Operaciones — Santiago de Chile</div>
+  <div class="idiv"></div>
+  <div class="ibody">
+    <p>Under President <span class="hl">Salvador Allende</span>, Chile built the world's first attempt at a real-time networked national economy — not a free market, not Soviet central planning, but a <span class="hl">third way</span>.</p>
+    <p>British cyberneticist <span class="hl">Stafford Beer</span> designed a system linking over 500 state factories by telex. Each day, production data flowed into Santiago. Managers could see anomalies and intervene — fast enough to matter.</p>
+    <p>The operations room seated <span class="hl">seven people</span> in swivelling fibreglass chairs, surrounded by screens. No keyboards. No paper. Just real-time data and decisions. It was destroyed in the <span class="hl">Pinochet coup, September 1973</span>.</p>
+  </div>
+  <div class="ifacts">
+    <div class="fact"><span class="fn">503</span><span class="fl">Telex Nodes</span></div>
+    <div class="fact"><span class="fn">7</span><span class="fl">Chairs in Opsroom</span></div>
+    <div class="fact"><span class="fn">2</span><span class="fl">Years Running</span></div>
+    <div class="fact"><span class="fn">1973</span><span class="fl">Year Destroyed</span></div>
+  </div>
+  <button id="enterbtn" onclick="enterRoom()">Enter the Opsroom &rarr;</button>
+</div>
+
+<!-- ROOM -->
+<div id="roomwrap">
+  <canvas id="room"></canvas>
+  <div id="szone" onclick="openDash()">
+    <div class="szr"></div>
+    <div class="szt">click to open dashboard</div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <div id="dh">
+      <div class="dhl"><h1>Cybersyn Opsroom</h1><p>Proyecto Synco — República de Chile — Noviembre 1972</p></div>
+      <div class="dhr">
+        <div class="pill"><div class="pd"></div>501 Nodes live</div>
+        <div class="pill"><div class="pd w" id="adot"></div><span id="albl">3 Alerts</span></div>
+        <button id="backbtn" onclick="closeDash()">&#8592; Back to room</button>
+      </div>
+    </div>
+    <div id="cstrip">Algedonic signal — critical variance — presidency notified</div>
+    <div id="db">
+      <div class="panel">
+        <div class="pt">Industrial Sectors</div>
+        <div class="sec"><div class="srow"><span class="sn">Copper Mining</span><span class="sv ok" id="sv-copper">94%</span></div><div class="bar"><div class="bf bok" id="bf-copper" style="width:94%"></div></div></div>
+        <div class="sec"><div class="srow"><span class="sn">Textile Mills</span><span class="sv wn" id="sv-textile">61%</span></div><div class="bar"><div class="bf bwn" id="bf-textile" style="width:61%"></div></div></div>
+        <div class="sec"><div class="srow"><span class="sn">Food Processing</span><span class="sv ok" id="sv-food">88%</span></div><div class="bar"><div class="bf bok" id="bf-food" style="width:88%"></div></div></div>
+        <div class="sec"><div class="srow"><span class="sn">Energy Grid</span><span class="sv wn" id="sv-energy">74%</span></div><div class="bar"><div class="bf bwn" id="bf-energy" style="width:74%"></div></div></div>
+        <div class="sec"><div class="srow"><span class="sn">Transport</span><span class="sv wn" id="sv-transport">55%</span></div><div class="bar"><div class="bf bwn" id="bf-transport" style="width:55%"></div></div></div>
+        <div class="sec"><div class="srow"><span class="sn">Steel Works</span><span class="sv ok" id="sv-steel">79%</span></div><div class="bar"><div class="bf bok" id="bf-steel" style="width:79%"></div></div></div>
+        <div class="sec"><div class="srow"><span class="sn">Nitrate Export</span><span class="sv ok" id="sv-nitrate">91%</span></div><div class="bar"><div class="bf bok" id="bf-nitrate" style="width:91%"></div></div></div>
+        <div class="sec"><div class="srow"><span class="sn">Fishmeal</span><span class="sv ok" id="sv-fish">83%</span></div><div class="bar"><div class="bf bok" id="bf-fish" style="width:83%"></div></div></div>
+      </div>
+      <div class="panel">
+        <div class="pt">Intervention Controls</div>
+        <div class="ctrl"><div class="cl">Resource Allocation</div><div class="cv" id="cv-alloc">65</div><input type="range" min="0" max="100" value="65" step="1" oninput="sc('alloc',+this.value)"></div>
+        <div class="ctrl"><div class="cl">Labour Mobilisation</div><div class="cv" id="cv-labour">72</div><input type="range" min="0" max="100" value="72" step="1" oninput="sc('labour',+this.value)"></div>
+        <div class="ctrl"><div class="cl">Transport Priority</div><div class="cv" id="cv-tprio">48</div><input type="range" min="0" max="100" value="48" step="1" oninput="sc('tprio',+this.value)"></div>
+        <div class="vsect">
+          <div class="vrow"><span class="vl">Requisite Variety</span><span class="vv" id="vval">58%</span></div>
+          <div class="vbar"><div class="vf" id="vf" style="width:58%"></div></div>
+          <div class="vnote">Beer's Law: controller variety must match system complexity. Below 40% → instability. Below 25% → breakdown.</div>
+        </div>
+      </div>
+      <div class="panel"><div class="pt">Telex — Cybernet</div><div id="telex"></div></div>
+      <div class="panel">
+        <div class="pt">Actions</div>
+        <button class="abtn danger" onclick="triggerCrisis()">Simulate crisis — algedonic signal</button>
+        <button class="abtn" onclick="resetAll()">Reset to baseline 1972-11-04</button>
+        <button class="abtn" onclick="doSignal()">Broadcast algedonic to all sectors</button>
+        <button class="abtn" onclick="showIntro()">&#8592; Read introduction</button>
+        <button class="abtn" onclick="window.open('https://en.wikipedia.org/wiki/Project_Cybersyn','_blank')">Wikipedia — Project Cybersyn &#8599;</button>
+      </div>
+    </div>
+    <div id="df">
+      <span>Stafford Beer — Viable System Model — Santiago de Chile</span>
+      <span id="clk">--:--:--</span>
+      <span>Cybernet 501 / 503 nodes live</span>
+    </div>
+  </div>
+</div>
+
+<div id="rcaption">
+  <span><span class="live"></span>Sala de Operaciones — Proyecto Synco</span>
+  <span>Santiago, Chile — 1972</span>
+  <span>Diseñado por Stafford Beer</span>
+</div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   CANVAS — high-DPI aware
+══════════════════════════════════════════════ */
+var CV = document.getElementById('room');
+var ctx = CV.getContext('2d');
+
+// logical size
+var LW = 1100, LH = 680;
+
+// scale for crisp rendering
+var DPR = window.devicePixelRatio || 1;
+CV.width  = LW * DPR;
+CV.height = LH * DPR;
+CV.style.width  = '100%';
+CV.style.height = 'auto';
+ctx.scale(DPR, DPR);
+
+// live sector data for drawing on the canvas screen
+var liveSecs = {copper:94, textile:61, food:88, energy:74, steel:79};
+var tickerText = '14:30  CYBERNET SYNC: 501 NODES  —  COPPER 94%  —  STEEL 79%';
+var activeSector = null; // which sector is highlighted on room screen
+
+function lerp(a,b,t){return a+(b-a)*t;}
+function rr(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+/* ── main screen coords (logical px) ── */
+var SCX=270, SCY=92, SCW=560, SCH=330;
+
+function drawRoom(){
+  ctx.clearRect(0,0,LW,LH);
+
+  /* back wall */
+  var bw=ctx.createLinearGradient(0,95,0,480);
+  bw.addColorStop(0,'#2e2210');bw.addColorStop(0.5,'#261c0c');bw.addColorStop(1,'#1c1408');
+  ctx.fillStyle=bw;
+  ctx.beginPath();ctx.moveTo(160,95);ctx.lineTo(940,95);ctx.lineTo(910,480);ctx.lineTo(190,480);ctx.closePath();ctx.fill();
+  /* grain */
+  ctx.strokeStyle='rgba(255,200,100,0.022)';ctx.lineWidth=1;
+  for(var gi=0;gi<24;gi++){ctx.beginPath();ctx.moveTo(162,98+gi*16);ctx.lineTo(938,98+gi*16);ctx.stroke();}
+  /* panel seams */
+  ctx.strokeStyle='rgba(0,0,0,0.18)';ctx.lineWidth=1.5;
+  [230,310,410,550,670,770,860].forEach(function(px){ctx.beginPath();ctx.moveTo(px,96);ctx.lineTo(px+7,479);ctx.stroke();});
+
+  /* left wall */
+  var lw=ctx.createLinearGradient(0,0,165,0);
+  lw.addColorStop(0,'#0c0a04');lw.addColorStop(1,'#201808');
+  ctx.fillStyle=lw;
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(160,95);ctx.lineTo(190,480);ctx.lineTo(0,680);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.22)';ctx.lineWidth=1;
+  [52,106,148].forEach(function(x){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,680);ctx.stroke();});
+
+  /* right wall */
+  var rwg=ctx.createLinearGradient(935,0,LW,0);
+  rwg.addColorStop(0,'#201808');rwg.addColorStop(1,'#0c0a04');
+  ctx.fillStyle=rwg;
+  ctx.beginPath();ctx.moveTo(940,95);ctx.lineTo(LW,0);ctx.lineTo(LW,680);ctx.lineTo(910,480);ctx.closePath();ctx.fill();
+  [960,1010,1060].forEach(function(x){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,680);ctx.stroke();});
+
+  /* ceiling coffer */
+  var cc=ctx.createLinearGradient(0,0,0,95);
+  cc.addColorStop(0,'#100e06');cc.addColorStop(1,'#0e0c06');
+  ctx.fillStyle=cc;
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(LW,0);ctx.lineTo(940,95);ctx.lineTo(160,95);ctx.closePath();ctx.fill();
+  /* light strip */
+  var ls=ctx.createLinearGradient(250,0,860,0);
+  ls.addColorStop(0,'rgba(255,200,70,0)');ls.addColorStop(0.15,'rgba(255,195,65,0.17)');
+  ls.addColorStop(0.5,'rgba(255,200,70,0.23)');ls.addColorStop(0.85,'rgba(255,195,65,0.17)');ls.addColorStop(1,'rgba(255,200,70,0)');
+  ctx.fillStyle=ls;ctx.fillRect(250,64,610,26);
+  ctx.strokeStyle='rgba(255,180,40,0.16)';ctx.lineWidth=0.8;
+  ctx.beginPath();ctx.moveTo(250,64);ctx.lineTo(860,64);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(250,90);ctx.lineTo(860,90);ctx.stroke();
+
+  /* floor */
+  var fl=ctx.createLinearGradient(0,478,0,680);
+  fl.addColorStop(0,'#1c1608');fl.addColorStop(1,'#0c0a05');
+  ctx.fillStyle=fl;
+  ctx.beginPath();ctx.moveTo(0,680);ctx.lineTo(LW,680);ctx.lineTo(910,480);ctx.lineTo(190,480);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(255,170,50,0.045)';ctx.lineWidth=0.8;
+  for(var fi=0;fi<=7;fi++){
+    var ft=fi/6, fy=lerp(480,680,Math.pow(ft,0.65));
+    ctx.beginPath();ctx.moveTo(lerp(190,0,ft),fy);ctx.lineTo(lerp(910,LW,ft),fy);ctx.stroke();
+  }
+  for(var fj=0;fj<=10;fj++){
+    var fp=fj/10;
+    ctx.beginPath();ctx.moveTo(lerp(190,910,fp),480);ctx.lineTo(lerp(0,LW,fp),680);ctx.stroke();
+  }
+
+  /* console */
+  var cg=ctx.createLinearGradient(550,318,550,440);
+  cg.addColorStop(0,'#362a14');cg.addColorStop(1,'#1e1808');
+  ctx.fillStyle=cg;
+  ctx.beginPath();ctx.moveTo(240,330);ctx.lineTo(860,330);ctx.lineTo(840,392);ctx.lineTo(260,392);ctx.closePath();ctx.fill();
+  var cf=ctx.createLinearGradient(550,392,550,450);
+  cf.addColorStop(0,'#2a2010');cf.addColorStop(1,'#181408');
+  ctx.fillStyle=cf;
+  ctx.beginPath();ctx.moveTo(260,392);ctx.lineTo(840,392);ctx.lineTo(828,450);ctx.lineTo(272,450);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(255,190,60,0.13)';ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.moveTo(240,330);ctx.lineTo(860,330);ctx.stroke();
+  var bc=['#1a2a1a','#2a1e0c','#0a1a2a','#001a0a','#1a0a0a','#2a2218'];
+  [370,422,474,526,578,630,682,734].forEach(function(bx,i){
+    ctx.fillStyle=bc[i%bc.length];ctx.strokeStyle='rgba(0,0,0,0.5)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.arc(bx,358,5,0,Math.PI*2);ctx.fill();ctx.stroke();
+    if(i===3){ctx.fillStyle='rgba(0,180,40,0.2)';ctx.beginPath();ctx.arc(bx,358,9,0,Math.PI*2);ctx.fill();}
+  });
+  ctx.fillStyle='#1a1608';ctx.strokeStyle='rgba(255,180,60,0.1)';ctx.lineWidth=0.8;
+  ctx.fillRect(410,370,240,7);ctx.strokeRect(410,370,240,7);
+  ctx.fillStyle='#3a2e18';ctx.strokeStyle='rgba(255,180,60,0.2)';ctx.lineWidth=0.8;
+  ctx.fillRect(506,366,16,15);ctx.strokeRect(506,366,16,15);
+
+  /* side screens */
+  drawSide(ctx,168,126,158,98,[{n:'TRANSPORT',v:55,w:true},{n:'STEEL',v:79,w:false},{n:'TIMBER',v:67,w:false}],'T-NET');
+  drawSide(ctx,774,126,158,98,[{n:'ENERGY',v:74,w:true},{n:'NITRATE',v:91,w:false},{n:'FISHMEAL',v:83,w:false}],'E-NET');
+
+  /* ── MAIN SCREEN ── */
+  drawMainScreen(ctx);
+
+  /* screen glow */
+  var mg=ctx.createRadialGradient(550,260,20,550,260,280);
+  mg.addColorStop(0,'rgba(0,180,40,0.1)');mg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=mg;ctx.fillRect(230,80,640,340);
+
+  /* chairs */
+  drawChairs(ctx);
+
+  /* lamps */
+  drawLamp(ctx,90,460);
+  drawLamp(ctx,985,455);
+
+  /* vignette */
+  var vg=ctx.createRadialGradient(LW/2,LH/2,200,LW/2,LH/2,640);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.58)');
+  ctx.fillStyle=vg;ctx.fillRect(0,0,LW,LH);
+}
+
+function drawSide(ctx,x,y,w,h,rows,lbl){
+  var bg=ctx.createLinearGradient(x,y,x,y+h);
+  bg.addColorStop(0,'#362a14');bg.addColorStop(1,'#1e1808');
+  ctx.fillStyle=bg;rr(ctx,x-5,y-5,w+10,h+10,5);ctx.fill();
+  ctx.fillStyle='#0a0a08';rr(ctx,x-2,y-2,w+4,h+4,3);ctx.fill();
+  ctx.fillStyle='#040e06';rr(ctx,x,y,w,h,2);ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.1)';ctx.lineWidth=0.7;
+  for(var si=0;si<h;si+=2.5){ctx.beginPath();ctx.moveTo(x,y+si);ctx.lineTo(x+w,y+si);ctx.stroke();}
+  ctx.fillStyle='rgba(0,150,40,0.25)';ctx.fillRect(x,y,w,13);
+  ctx.fillStyle='rgba(0,220,60,0.7)';ctx.font='bold 8px "Share Tech Mono"';
+  ctx.textAlign='center';ctx.fillText(lbl,x+w/2,y+10);
+  rows.forEach(function(r,i){
+    var ry=y+18+i*25;
+    ctx.fillStyle=r.w?'rgba(180,100,0,0.55)':'rgba(0,160,40,0.55)';
+    ctx.font='7px "Share Tech Mono"';ctx.textAlign='left';ctx.fillText(r.n,x+6,ry+9);
+    ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(x+6,ry+12,w-12,4);
+    ctx.fillStyle=r.w?'#bb7a00':'#00aa28';ctx.fillRect(x+6,ry+12,(w-12)*r.v/100,4);
+    ctx.fillStyle=r.w?'rgba(200,140,0,0.8)':'rgba(0,180,40,0.8)';
+    ctx.font='bold 10px "Share Tech Mono"';ctx.textAlign='right';ctx.fillText(r.v+'%',x+w-4,ry+9);
+  });
+  var gl=ctx.createLinearGradient(x,y,x+w*0.7,y+h*0.5);
+  gl.addColorStop(0,'rgba(255,255,255,0.05)');gl.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=gl;rr(ctx,x,y,w,h,2);ctx.fill();
+}
+
+function drawMainScreen(ctx){
+  var x=SCX, y=SCY, w=SCW, h=SCH;
+  /* bezel */
+  var ob=ctx.createLinearGradient(x,y,x+w,y+h);
+  ob.addColorStop(0,'#483820');ob.addColorStop(1,'#201808');
+  ctx.fillStyle=ob;rr(ctx,x-11,y-11,w+22,h+22,10);ctx.fill();
+  ctx.fillStyle='#0c0c0a';rr(ctx,x-4,y-4,w+8,h+8,6);ctx.fill();
+  ctx.fillStyle='#030d05';rr(ctx,x,y,w,h,3);ctx.fill();
+  /* scanlines */
+  ctx.strokeStyle='rgba(0,0,0,0.07)';ctx.lineWidth=1;
+  for(var si=0;si<h;si+=3){ctx.beginPath();ctx.moveTo(x,y+si);ctx.lineTo(x+w,y+si);ctx.stroke();}
+
+  /* HEADER */
+  ctx.fillStyle='rgba(0,180,48,0.28)';ctx.fillRect(x,y,w,36);
+  ctx.fillStyle='rgba(0,245,75,0.92)';
+  ctx.font='bold 22px "Share Tech Mono"';
+  ctx.textAlign='center';
+  ctx.fillText('CYBERSYN — NATIONAL INDEX', x+w/2, y+25);
+
+  /* sub header */
+  ctx.fillStyle='rgba(0,180,48,0.5)';
+  ctx.font='13px "Share Tech Mono"';
+  ctx.fillText('NOVIEMBRE 1972  —  501 NODES ACTIVE', x+w/2, y+47);
+
+  /* SECTOR ROWS */
+  var sd=[
+    {k:'copper',  n:'COPPER MINING',  v:liveSecs.copper,  c:'#00e040'},
+    {k:'textile', n:'TEXTILE MILLS',  v:liveSecs.textile, c:'#ee9900'},
+    {k:'food',    n:'FOOD PROCESSING',v:liveSecs.food,    c:'#00e040'},
+    {k:'energy',  n:'ENERGY GRID',    v:liveSecs.energy,  c:'#ee9900'},
+    {k:'steel',   n:'STEEL WORKS',    v:liveSecs.steel,   c:'#00e040'},
+  ];
+  var rowH=44, rowY=y+58;
+  sd.forEach(function(s,i){
+    var sy=rowY+i*rowH;
+    var isActive = activeSector===s.k;
+    /* highlight active */
+    if(isActive){
+      ctx.fillStyle='rgba(0,255,60,0.07)';
+      ctx.fillRect(x+4,sy+2,w-8,rowH-4);
+    }
+    /* name */
+    ctx.fillStyle= isActive ? s.c : s.c.replace('0,','0,').replace('rgba','rgba');
+    ctx.globalAlpha = isActive ? 1.0 : 0.8;
+    ctx.font='bold 18px "Share Tech Mono"';
+    ctx.textAlign='left';
+    ctx.fillText(s.n, x+18, sy+26);
+    ctx.globalAlpha=1;
+    /* bar track */
+    ctx.fillStyle='rgba(0,0,0,0.45)';
+    ctx.fillRect(x+240, sy+12, w-310, 14);
+    /* bar fill */
+    ctx.fillStyle=s.c;
+    ctx.fillRect(x+240, sy+12, (w-310)*s.v/100, 14);
+    /* percent — large */
+    ctx.fillStyle=s.c;
+    ctx.font='bold 22px "Share Tech Mono"';
+    ctx.textAlign='right';
+    ctx.fillText(s.v+'%', x+w-12, sy+28);
+  });
+
+  /* CHART */
+  var cy=y+285, cw=w-24, ch=20;
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(x+12,cy,cw,ch);
+  ctx.strokeStyle='#00cc30';ctx.lineWidth=2;
+  ctx.beginPath();
+  var pts=[70,68,74,65,72,60,68,63,58,62,55,60,53,57,50,54,52,49,54,56,58,60];
+  pts.forEach(function(pv,pi){
+    var px=x+12+pi*(cw/(pts.length-1));
+    var py=cy+ch-(pv/100)*ch*1.2;
+    pi===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+  ctx.fillStyle='rgba(0,180,40,0.5)';ctx.font='bold 11px "Share Tech Mono"';ctx.textAlign='left';
+  ctx.fillText('FLOW INDEX  1971–72', x+16, cy+ch-3);
+
+  /* TICKER */
+  ctx.fillStyle='rgba(0,180,48,0.22)';ctx.fillRect(x,y+h-26,w,26);
+  ctx.fillStyle='rgba(0,230,60,0.8)';
+  ctx.font='bold 14px "Share Tech Mono"';
+  ctx.textAlign='left';
+  ctx.fillText(tickerText, x+12, y+h-8);
+
+  /* glass */
+  var gl=ctx.createLinearGradient(x,y,x+w*0.6,y+h*0.4);
+  gl.addColorStop(0,'rgba(255,255,255,0.07)');gl.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=gl;rr(ctx,x,y,w,h,3);ctx.fill();
+
+  /* border */
+  ctx.strokeStyle='rgba(0,230,60,0.22)';ctx.lineWidth=1.5;
+  rr(ctx,x,y,w,h,3);ctx.stroke();
+}
+
+function drawChairs(ctx){
+  var defs=[
+    {cx:178,cy:574,a:-40,s:0.8},{cx:308,cy:544,a:-25,s:0.87},
+    {cx:438,cy:526,a:-10,s:0.94},{cx:550,cy:522,a:0,s:0.97},
+    {cx:662,cy:526,a:10,s:0.94},{cx:792,cy:544,a:25,s:0.87},
+    {cx:922,cy:574,a:40,s:0.8},
+  ];
+  defs.forEach(function(ch){
+    ctx.save();ctx.translate(ch.cx,ch.cy);ctx.rotate(ch.a*Math.PI/180);ctx.scale(ch.s,ch.s);
+    ctx.fillStyle='rgba(0,0,0,0.28)';ctx.beginPath();ctx.ellipse(0,18,22,7,0,0,Math.PI*2);ctx.fill();
+    var bd=ctx.createRadialGradient(0,15,0,0,15,18);
+    bd.addColorStop(0,'#3a2e14');bd.addColorStop(1,'#1e1808');
+    ctx.fillStyle=bd;ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=0.6;
+    ctx.beginPath();ctx.ellipse(0,14,18,6,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    var st=ctx.createLinearGradient(-3,14,3,14);
+    st.addColorStop(0,'#3a2e14');st.addColorStop(0.5,'#4a3a1a');st.addColorStop(1,'#2a2010');
+    ctx.fillStyle=st;ctx.beginPath();ctx.moveTo(-3,14);ctx.lineTo(-2.5,-22);ctx.lineTo(2.5,-22);ctx.lineTo(3,14);ctx.closePath();ctx.fill();
+    var sg=ctx.createRadialGradient(-5,-4,3,2,2,28);
+    sg.addColorStop(0,'#d05218');sg.addColorStop(0.5,'#b04010');sg.addColorStop(1,'#7a2c08');
+    ctx.fillStyle=sg;ctx.strokeStyle='rgba(0,0,0,0.25)';ctx.lineWidth=0.8;
+    ctx.beginPath();ctx.ellipse(0,2,26,18,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+    var br=ctx.createLinearGradient(-12,-28,12,-28);
+    br.addColorStop(0,'#c04a14');br.addColorStop(0.5,'#b84218');br.addColorStop(1,'#c04a14');
+    ctx.fillStyle=br;
+    ctx.beginPath();ctx.moveTo(-20,2);ctx.quadraticCurveTo(-24,-30,0,-36);ctx.quadraticCurveTo(24,-30,20,2);ctx.quadraticCurveTo(0,6,-20,2);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle='rgba(255,200,120,0.2)';ctx.beginPath();ctx.ellipse(-6,-8,10,6,-0.3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#2a2210';ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=0.6;
+    [[-24,-4,-28,-4,-28,5,-24,6],[24,-4,28,-4,28,5,24,6]].forEach(function(p){
+      ctx.beginPath();ctx.moveTo(p[0],p[1]);for(var pi=2;pi<8;pi+=2)ctx.lineTo(p[pi],p[pi+1]);ctx.closePath();ctx.fill();ctx.stroke();
+    });
+    ctx.restore();
+  });
+}
+
+function drawLamp(ctx,x,y){
+  var bg=ctx.createRadialGradient(x,y+68,0,x,y+68,14);
+  bg.addColorStop(0,'#3a2e14');bg.addColorStop(1,'#1a1408');
+  ctx.fillStyle=bg;ctx.beginPath();ctx.ellipse(x,y+68,14,5,0,0,Math.PI*2);ctx.fill();
+  var pg=ctx.createLinearGradient(x-2,0,x+2,0);
+  pg.addColorStop(0,'#2a2010');pg.addColorStop(0.5,'#3a2e18');pg.addColorStop(1,'#1a1408');
+  ctx.fillStyle=pg;ctx.fillRect(x-2,y-30,4,98);
+  ctx.strokeStyle='#2a2010';ctx.lineWidth=3;
+  var dir=x<200?1:-1;
+  ctx.beginPath();ctx.moveTo(x,y-30);ctx.quadraticCurveTo(x,y-55,x+dir*38,y-65);ctx.stroke();
+  var sx=x+dir*30,sy=y-62;
+  ctx.fillStyle='rgba(200,140,20,0.35)';
+  ctx.beginPath();ctx.moveTo(sx-14,sy-2);ctx.lineTo(sx+14,sy-2);ctx.lineTo(sx+10,sy+18);ctx.lineTo(sx-10,sy+18);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#3a2e10';ctx.lineWidth=0.8;ctx.stroke();
+  var gg=ctx.createRadialGradient(sx,sy+14,2,sx,sy+14,60);
+  gg.addColorStop(0,'rgba(255,180,40,0.1)');gg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=gg;ctx.fillRect(sx-60,sy-20,120,100);
+}
+
+drawRoom();
+
+/* position screen hotspot */
+function posZone(){
+  var wrap=document.getElementById('roomwrap');
+  var sc=wrap.getBoundingClientRect().width/LW;
+  var z=document.getElementById('szone');
+  z.style.left=(SCX*sc)+'px'; z.style.top=(SCY*sc)+'px';
+  z.style.width=(SCW*sc)+'px'; z.style.height=(SCH*sc)+'px';
+}
+posZone();
+window.addEventListener('resize',function(){posZone();});
+
+/* ── CLICK on screen rows to highlight sector ── */
+document.getElementById('szone').addEventListener('click',function(e){
+  var wrap=document.getElementById('roomwrap');
+  var sc=wrap.getBoundingClientRect().width/LW;
+  var rect=document.getElementById('szone').getBoundingClientRect();
+  var relY=(e.clientY-rect.top)/sc; // position in logical coords relative to screen top
+  var rowH=44, rowStartY=58;
+  var keys=['copper','textile','food','energy','steel'];
+  var hit=null;
+  keys.forEach(function(k,i){
+    var ry=rowStartY+i*rowH;
+    if(relY>=ry && relY<ry+rowH) hit=k;
+  });
+  if(hit){
+    activeSector=(activeSector===hit)?null:hit;
+    drawRoom();
+    // don't open dashboard if just clicking a row
+    e.stopPropagation();
+  }
+});
+
+/* separate open-dash click on the non-row area */
+document.getElementById('szone').addEventListener('dblclick',function(e){
+  openDash();
+});
+
+// update ticker periodically
+function updateTicker(){
+  var keys=Object.keys(liveSecs);
+  var parts=keys.map(function(k){return k.toUpperCase().slice(0,3)+' '+Math.round(liveSecs[k])+'%';});
+  tickerText=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})+'  CYBERNET 501 NODES  —  '+parts.join('  —  ');
+}
+
+/* ══════════════════════════════════════════════
+   INTRO / DASHBOARD LOGIC
+══════════════════════════════════════════════ */
+function enterRoom(){
+  var el=document.getElementById('intro');
+  el.classList.add('hiding');
+  setTimeout(function(){el.style.display='none';},800);
+}
+function showIntro(){
+  closeDash();
+  var el=document.getElementById('intro');
+  el.style.display='flex';el.classList.remove('hiding');
+  el.style.animation='none';el.offsetHeight;el.style.animation='fadeIn 0.5s ease forwards';
+}
+
+var secs={copper:94,textile:61,food:88,energy:74,transport:55,steel:79,nitrate:91,fish:83};
+var ctrls={alloc:65,labour:72,tprio:48};
+var tls=['14:30  SANTIAGO → CONCEPCIÓN: Reroute textiles via rail','14:22  ANTOFAGASTA: Copper shipment confirmed — 94%','13:55  OPS → ALL: Reallocation authorised by S3','13:40  CYBERNET SYNC: 501 nodes responding','13:22  BREWERY 04: Production holding at 88%'];
+var inCrisis=false;
+
+function openDash(){document.getElementById('dashboard').classList.add('open');renderAll();}
+function closeDash(){document.getElementById('dashboard').classList.remove('open');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDash();});
+
+function sc(k,v){
+  ctrls[k]=v;document.getElementById('cv-'+k).textContent=v;
+  var vr=Math.round(ctrls.alloc*0.35+ctrls.labour*0.35+ctrls.tprio*0.3);
+  document.getElementById('vval').textContent=vr+'%';
+  var vf=document.getElementById('vf');
+  vf.style.width=vr+'%';vf.style.background=vr<40?'#cc1010':vr<55?'#cc8800':'#00cc30';
+  Object.keys(secs).forEach(function(sk){
+    secs[sk]=Math.max(10,Math.min(100,Math.round(secs[sk]+(v-60)*0.07*(Math.random()*0.8+0.6))));
+  });
+  // sync live secs to canvas
+  ['copper','textile','food','energy','steel'].forEach(function(k){if(secs[k])liveSecs[k]=secs[k];});
+  renderSectors();updateTicker();drawRoom();
+}
+
+function renderSectors(){
+  Object.keys(secs).forEach(function(k){
+    var v=Math.round(secs[k]);
+    var cl=v>75?'ok':v>55?'wn':'cr';
+    var bc=v>75?'bok':v>55?'bwn':'bcr';
+    var se=document.getElementById('sv-'+k);var be=document.getElementById('bf-'+k);
+    if(se){se.textContent=v+'%';se.className='sv '+cl;}
+    if(be){be.style.width=v+'%';be.className='bf '+bc;}
+  });
+}
+function addTl(m){
+  var t=new Date();var ts=t.getHours().toString().padStart(2,'0')+':'+t.getMinutes().toString().padStart(2,'0');
+  tls.unshift(ts+'  '+m);if(tls.length>12)tls.pop();renderTelex();
+}
+function renderTelex(){
+  var el=document.getElementById('telex');if(!el)return;
+  el.innerHTML=tls.slice(0,9).map(function(l,i){return '<div class="tl'+(i===0?' fresh':'')+'">'+l+'</div>';}).join('');
+}
+function triggerCrisis(){
+  inCrisis=true;
+  Object.keys(secs).forEach(function(k){secs[k]=Math.max(10,Math.round(secs[k]-20-Math.random()*14));});
+  ['copper','textile','food','energy','steel'].forEach(function(k){if(secs[k])liveSecs[k]=secs[k];});
+  renderSectors();
+  document.getElementById('cstrip').style.display='block';
+  document.getElementById('adot').className='pd c';document.getElementById('albl').textContent='CRISIS';
+  addTl('ALGEDONIC — critical variance — presidency notified');
+  addTl('VALPO DOCKS: Strike day 3 — critical output');
+  updateTicker();drawRoom();
+}
+function resetAll(){
+  inCrisis=false;
+  secs={copper:94,textile:61,food:88,energy:74,transport:55,steel:79,nitrate:91,fish:83};
+  liveSecs={copper:94,textile:61,food:88,energy:74,steel:79};
+  ctrls={alloc:65,labour:72,tprio:48};
+  document.querySelectorAll('input[type=range]').forEach(function(el,i){
+    var ks=['alloc','labour','tprio'];if(ks[i]){el.value=ctrls[ks[i]];document.getElementById('cv-'+ks[i]).textContent=ctrls[ks[i]];}
+  });
+  document.getElementById('vf').style.width='58%';document.getElementById('vf').style.background='#00cc30';
+  document.getElementById('vval').textContent='58%';
+  document.getElementById('cstrip').style.display='none';
+  document.getElementById('adot').className='pd w';document.getElementById('albl').textContent='3 Alerts';
+  activeSector=null;renderSectors();addTl('System reset — baseline 1972-11-04');updateTicker();drawRoom();
+}
+function doSignal(){addTl('OPS → ALL SECTORS: Presidential order — mobilise reserves now');}
+function renderAll(){renderSectors();renderTelex();}
+
+/* ambient tick */
+setInterval(function(){
+  if(!inCrisis){
+    Object.keys(secs).forEach(function(k){secs[k]=Math.max(30,Math.min(100,Math.round(secs[k]+(Math.random()-0.5)*1.4)));});
+    ['copper','textile','food','energy','steel'].forEach(function(k){if(secs[k])liveSecs[k]=secs[k];});
+  }
+  if(document.getElementById('dashboard').classList.contains('open'))renderSectors();
+  updateTicker();drawRoom();
+},4000);
+setInterval(function(){
+  if(Math.random()<0.2){
+    var ms=['CYBERNET SYNC: All nodes responding','BREWERY 12: Production nominal','COPPER MINE 3: Output steady','S2 COORD: No anomalies','VALPO PORT: Manifest transmitted','IQUIQUE: Nitrate loading confirmed','SANTIAGO → TEMUCO: Confirm food distribution'];
+    addTl(ms[Math.floor(Math.random()*ms.length)]);
+  }
+},7000);
+setInterval(function(){document.getElementById('clk').textContent=new Date().toLocaleTimeString('en-GB');},1000);
+
+renderTelex();updateTicker();
+</script>
+</body>
+</html>
